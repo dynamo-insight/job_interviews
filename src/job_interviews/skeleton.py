@@ -9,7 +9,7 @@ console script. To run this script uncomment the following lines in the
 Then run ``pip install .`` (or ``pip install -e .`` for editable mode)
 which will install the command ``fibonacci`` inside your current environment.
 
-Besides console scripts, the header (i.e. until ``_logger``...) of this file can
+Besides console scripts, the header (i.e. until ``logger``...) of this file can
 also be used as template for Python modules.
 
 Note:
@@ -22,6 +22,7 @@ References:
 
 import argparse
 import logging
+import logzero
 import sys
 
 from job_interviews import __version__
@@ -30,8 +31,10 @@ __author__ = "Hugo Ehlinger"
 __copyright__ = "Hugo Ehlinger"
 __license__ = "MIT"
 
-_logger = logging.getLogger(__name__)
+from logzero import logger
 
+from job_interviews.init_exercise import init_exercise
+from job_interviews.queens_attack.test import test_interviewee as queens_attack_test_interviewee
 
 # ---- Python API ----
 # The functions defined in this section can be imported by users in their
@@ -78,7 +81,6 @@ def parse_args(args):
         action="version",
         version="job_interviews {ver}".format(ver=__version__),
     )
-    parser.add_argument(dest="n", help="n-th Fibonacci number", type=int, metavar="INT")
     parser.add_argument(
         "-v",
         "--verbose",
@@ -95,6 +97,30 @@ def parse_args(args):
         action="store_const",
         const=logging.DEBUG,
     )
+    parser.add_argument(
+        "-s",
+        "--script",
+        dest="script",
+        help="set script to launch",
+    )
+    parser.add_argument(
+        "-e",
+        "--exercise",
+        dest="exercise",
+        help="set exercise to launch",
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        dest="input",
+        help="set input filepath",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output",
+        help="set output filepath",
+    )
     return parser.parse_args(args)
 
 
@@ -104,10 +130,8 @@ def setup_logging(loglevel):
     Args:
       loglevel (int): minimum loglevel for emitting messages
     """
-    logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    logging.basicConfig(
-        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    loglevel = loglevel if loglevel else logging.INFO
+    logzero.loglevel(loglevel)
 
 
 def main(args):
@@ -122,9 +146,20 @@ def main(args):
     """
     args = parse_args(args)
     setup_logging(args.loglevel)
-    _logger.debug("Starting crazy calculations...")
-    print("The {}-th Fibonacci number is {}".format(args.n, fib(args.n)))
-    _logger.info("Script ends here")
+    accepted_scripts = ["init", "run", "submit"]
+    accepted_exercises = ["queens_attack"]
+    if args.script not in accepted_scripts:
+        raise NameError(f"Script {args.script} not accepted. Expected script should be one of {accepted_scripts}")
+    if args.exercise not in accepted_exercises:
+        raise NameError(f"Script {args.exercise} not accepted. Expected script should be one of {accepted_exercises}")
+
+    if args.script == "init":
+        init_exercise(args.exercise, args.output)
+    elif args.script == "run":
+        queens_attack_test_interviewee(args.input, run_all=False)
+    elif args.script == "submit":
+        queens_attack_test_interviewee(args.input, run_all=True)
+    logger.info("Script ends here")
 
 
 def run():
