@@ -10,6 +10,14 @@ git clone https://github.com/dynamo-insight/job_interviews
 pip install -e job_interviews
 ```
 
+On Linux, the package must be installed on a virtual environment:
+```
+git clone https://github.com/dynamo-insight/job_interviews
+python3 -m venv venv
+source venv/bin/activate
+pip install -e job_interviews
+```
+
 Installing the local package via ```pip``` installs the CLI ```job_interview``` that can be used by the interviewee to initialize its code and test it.
 
 ## Usage
